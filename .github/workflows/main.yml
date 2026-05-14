@@ -89,7 +89,7 @@ jobs:
           -v ${{ github.workspace }}:/workspace \
           -w /workspace \
           "$IMAGE" \
-          bash -c "yes y | (apt-get update && apt-get install -y python3.11 python3.11-venv && buildozer android clean && buildozer -v android debug)"
+          bash -c "apt-get update && apt-get install -y python3.11 python3.11-venv && python3.11 -m pip install --upgrade buildozer && yes y | python3.11 -m buildozer -v android debug"
 
 
 
