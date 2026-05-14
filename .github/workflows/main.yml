@@ -81,9 +81,9 @@ jobs:
 
       # ── 5. Pre-build verification (runs INSIDE the image) ───────────────────
       - name: Build debug APK inside container
-      run: |
-        chmod -R 777 .
-        docker run --rm \
+        run: |
+         chmod -R 777 .
+         docker run --rm \
           --user root \
           -e BUILDOZER_ALLOW_ORG_ROOT_USER=1 \
           -v ${{ github.workspace }}:/workspace \
