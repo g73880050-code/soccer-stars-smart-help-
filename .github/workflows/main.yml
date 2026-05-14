@@ -91,12 +91,16 @@ jobs:
       # ────────────────────────────────────────────────────────────────────────
       - name: Build debug APK inside container
         run: |
+          chmod -R 777 .
           docker run --rm \
-            -u "$(id -u):$(id -g)" \
-            -v "${{ github.workspace }}:/workspace" \
-            -w /workspace \
-            "$IMAGE" \
-            bash -c "buildozer -v android debug 2>&1 | tee buildozer_build.log"
+          --user root \
+          -v ${{ github.workspace }}:/workspace \
+          -w /workspace \
+          "$IMAGE" \
+          bash -c "buildozer -v android debug 2>&1 | tee buildozer_build.log"
+
+
+
 
       # ── 7. Upload APK ────────────────────────────────────────────────────────
       - name: Upload APK artifact
