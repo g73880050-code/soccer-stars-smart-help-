@@ -80,15 +80,6 @@ jobs:
             buildozer-recipes-${{ runner.os }}-
 
       # ── 5. Pre-build verification (runs INSIDE the image) ───────────────────
-      
-
-      # ── 6. BUILD ────────────────────────────────────────────────────────────
-      #
-      # Mount the checked-out repo as /workspace (the image WORKDIR).
-      # Mount the recipe cache directory so it survives across runs.
-      # The -u flag runs as the current UID to avoid permission issues on the
-      # mounted volume (the bin/ output must be readable by the runner).
-      # ────────────────────────────────────────────────────────────────────────
       - name: Build debug APK inside container
         run: |
          chmod -R 777 .
@@ -98,7 +89,16 @@ jobs:
           -v ${{ github.workspace }}:/workspace \
           -w /workspace \
           "$IMAGE" \
-          bash -c "buildozer -v android debug 2>&1 | tee buildozer_build.log"
+          bash -c "yes y | buildozer -v android debug 2>&1 | tee buildozer_build.log"
+
+
+      # ── 6. BUILD ────────────────────────────────────────────────────────────
+      #
+      # Mount the checked-out repo as /workspace (the image WORKDIR).
+      # Mount the recipe cache directory so it survives across runs.
+      # The -u flag runs as the current UID to avoid permission issues on the
+      # mounted volume (the bin/ output must be readable by the runner).
+      # ────────────────────────────────────────────────────────────────────────
 
 
 
