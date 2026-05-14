@@ -86,11 +86,11 @@ jobs:
          docker run --rm \
           --user root \
           -e BUILDOZER_ALLOW_ORG_ROOT_USER=1 \
-          -e P4A_PYTHON_VENV=1 \
           -v ${{ github.workspace }}:/workspace \
           -w /workspace \
           "$IMAGE" \
-          bash -c "yes y | buildozer -v android debug"
+          bash -c "export P4A_hostpython3=/usr/bin/python3.11 && yes y | buildozer -v android debug"
+
 
 
       # ── 6. BUILD ────────────────────────────────────────────────────────────
