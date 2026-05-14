@@ -91,9 +91,10 @@ jobs:
       # ────────────────────────────────────────────────────────────────────────
       - name: Build debug APK inside container
         run: |
-          chmod -R 777 .
-          docker run --rm \
+         chmod -R 777 .
+         docker run --rm \
           --user root \
+          -e BUILDOZER_ALLOW_ORG_ROOT_USER=1 \
           -v ${{ github.workspace }}:/workspace \
           -w /workspace \
           "$IMAGE" \
