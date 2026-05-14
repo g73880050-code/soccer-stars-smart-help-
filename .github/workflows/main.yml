@@ -89,7 +89,7 @@ jobs:
           -v ${{ github.workspace }}:/workspace \
           -w /workspace \
           "$IMAGE" \
-          bash -c "yes y | buildozer android clean && yes y | buildozer -v android debug"
+          bash -c "yes y | buildozer -v android debug"
 
 
 
