@@ -89,7 +89,8 @@ jobs:
           -v ${{ github.workspace }}:/workspace \
           -w /workspace \
           "$IMAGE" \
-          bash -c "yes y | buildozer -v android debug 2>&1 | tee buildozer_build.log"
+          bash -c "buildozer android clean && yes y | buildozer -v android debug 2>&1 | tee buildozer_build.log"
+ 
 
 
       # ── 6. BUILD ────────────────────────────────────────────────────────────
