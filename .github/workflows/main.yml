@@ -88,8 +88,9 @@ jobs:
           -e BUILDOZER_ALLOW_ORG_ROOT_USER=1 \
           -v ${{ github.workspace }}:/workspace \
           -w /workspace \
-          "$IMAGE" \
-          bash -c "export P4A_hostpython3=/usr/bin/python3.11 && yes y | buildozer -v android debug"
+          kivy/buildozer:master \
+          bash -c "buildozer android clean && yes y | buildozer -v android debug"
+
 
 
 
