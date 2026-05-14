@@ -1,0 +1,40 @@
+# ============================================================================
+# Soccer Stars Analyzer — Python dependencies
+# ============================================================================
+#
+# PURPOSE
+# -------
+# This file is for LOCAL DESKTOP testing and development ONLY.
+# The Android build uses python-for-android recipes declared in buildozer.spec,
+# not pip packages. Do NOT add Android-only packages here.
+#
+# Install:  pip install -r requirements.txt
+# ============================================================================
+
+# ---------------------------------------------------------------------------
+# UI framework
+# ---------------------------------------------------------------------------
+kivy==2.3.0
+
+# Kivy's own dependency set (pulled automatically by kivy, listed for clarity)
+kivy-deps.sdl2>=0.8.0; sys_platform == "win32"
+kivy-deps.glew>=0.3.1; sys_platform == "win32"
+
+# ---------------------------------------------------------------------------
+# Computer vision & numerics
+# ---------------------------------------------------------------------------
+numpy>=1.26.4
+opencv-python-headless>=4.9.0.80   # headless = no Qt/GTK dependency
+
+# ---------------------------------------------------------------------------
+# Android bridge  (import-guarded in source — safe to omit on desktop)
+# ---------------------------------------------------------------------------
+# pyjnius is Android-only; skip installing it locally unless you are
+# testing the Pyjnius bridge on a JVM-equipped Linux machine.
+# pyjnius>=1.6.1
+
+# ---------------------------------------------------------------------------
+# Build / packaging tools  (development helpers, not runtime deps)
+# ---------------------------------------------------------------------------
+Cython==3.0.10
+buildozer==1.5.0
