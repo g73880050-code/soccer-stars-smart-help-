@@ -80,20 +80,7 @@ jobs:
             buildozer-recipes-${{ runner.os }}-
 
       # ── 5. Pre-build verification (runs INSIDE the image) ───────────────────
-      - name: Verify image environment
-        run: |
-          docker run --rm "$IMAGE" bash -c "
-            set -e
-            echo '── Java ──────────────────────────────────' && java -version
-            echo '── Python ────────────────────────────────' && python --version
-            echo '── Buildozer ─────────────────────────────' && buildozer --version
-            echo '── sdkmanager ────────────────────────────' && which sdkmanager && sdkmanager --version
-            echo '── aidl ──────────────────────────────────' && which aidl && aidl --version
-            echo '── ANDROID_HOME ──────────────────────────' && echo \$ANDROID_HOME
-            echo '── ANDROIDNDK ────────────────────────────' && echo \$ANDROIDNDK
-            echo '── Build-tools ───────────────────────────' && ls \$ANDROID_HOME/build-tools/
-            echo '── NDK ───────────────────────────────────' && ls \$ANDROID_HOME/ndk/
-          "
+      
 
       # ── 6. BUILD ────────────────────────────────────────────────────────────
       #
