@@ -128,14 +128,7 @@ RUN ln -sf "$ANDROID_HOME/build-tools/33.0.0" \
            "$ANDROID_HOME/build-tools/37.0.0"
 
 # ── 10. Final check ──────────────────────────────────────────────────────────
-RUN echo "=== Build image verification ===" && \
-    java -version && \
-    python --version && \
-    buildozer --version && \
-    which sdkmanager && sdkmanager --version && \
-    which aidl && aidl --version && \
-    echo "NDK: $ANDROIDNDK" && ls "$ANDROIDNDK/ndk-build" && \
-    echo "=== Image ready ==="
+
 
 # ── Default working directory ────────────────────────────────────────────────
 WORKDIR /workspace
