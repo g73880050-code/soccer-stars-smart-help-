@@ -1,0 +1,132 @@
+name: Build Soccer Stars Analyzer APK (Docker)
+
+# =============================================================================
+# Why Docker?
+# -----------
+# The GitHub Actions host environment is unstable with respect to Android SDK
+# versioning — sdkmanager auto-resolves "latest" to Build-Tools 37, license
+# acceptance is inconsistent, and aidl ends up missing.
+#
+# This workflow builds a Docker image that has EVERYTHING frozen inside it:
+#   Python 3.11, Java 17, Buildozer 1.5.0, Android SDK 33.0.0, NDK r25b.
+# The host runner only needs Docker.  The build runs in full isolation.
+#
+# Caching strategy
+# ----------------
+# The Docker image layer cache is stored in GitHub Actions cache using
+# docker/build-push-action with cache-from/cache-to.
+# On the first run the image build takes ~10-15 min (SDK/NDK download).
+# Subsequent runs restore from cache and take < 2 min for the image step.
+# Buildozer's recipe cache (.buildozer/android/app) is also preserved with
+# actions/cache so recipe compilation (OpenCV, Kivy, etc.) is not repeated.
+# =============================================================================
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+  workflow_dispatch:
+
+env:
+  # Image name used throughout the workflow
+  IMAGE: soccer-stars-builder:latest
+
+jobs:
+  build-apk:
+    runs-on: ubuntu-22.04
+
+    steps:
+
+      # ── 1. Checkout ─────────────────────────────────────────────────────────
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # ── 2. Docker buildx (needed for cache-to/from) ─────────────────────────
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # ── 3. Build Docker image (cached) ──────────────────────────────────────
+      #
+      # The image is built from the Dockerfile at the repo root.
+      # Layer cache is stored in GitHub Actions cache.
+      # The image itself is loaded into the local Docker daemon (load: true)
+      # so the next step can run a container from it.
+      # ────────────────────────────────────────────────────────────────────────
+      - name: Build Docker image (cached)
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file:    ./Dockerfile
+          push:    false
+          load:    true
+          tags:    ${{ env.IMAGE }}
+          cache-from: type=gha
+          cache-to:   type=gha,mode=max
+
+      # ── 4. Restore Buildozer recipe cache ───────────────────────────────────
+      #
+      # The compiled python-for-android recipes (OpenCV, Kivy, etc.) live in
+      # .buildozer/android/app inside the checkout.  We cache this directory
+      # separately from the Docker image so recipe compilation is not repeated
+      # even when the image is rebuilt.
+      # ────────────────────────────────────────────────────────────────────────
+      - name: Restore Buildozer recipe cache
+        uses: actions/cache@v4
+        with:
+          path: .buildozer/android/app
+          key: buildozer-recipes-${{ runner.os }}-${{ hashFiles('buildozer.spec') }}
+          restore-keys: |
+            buildozer-recipes-${{ runner.os }}-
+
+      # ── 5. Pre-build verification (runs INSIDE the image) ───────────────────
+      - name: Verify image environment
+        run: |
+          docker run --rm "$IMAGE" bash -c "
+            set -e
+            echo '── Java ──────────────────────────────────' && java -version
+            echo '── Python ────────────────────────────────' && python --version
+            echo '── Buildozer ─────────────────────────────' && buildozer --version
+            echo '── sdkmanager ────────────────────────────' && which sdkmanager && sdkmanager --version
+            echo '── aidl ──────────────────────────────────' && which aidl && aidl --version
+            echo '── ANDROID_HOME ──────────────────────────' && echo \$ANDROID_HOME
+            echo '── ANDROIDNDK ────────────────────────────' && echo \$ANDROIDNDK
+            echo '── Build-tools ───────────────────────────' && ls \$ANDROID_HOME/build-tools/
+            echo '── NDK ───────────────────────────────────' && ls \$ANDROID_HOME/ndk/
+          "
+
+      # ── 6. BUILD ────────────────────────────────────────────────────────────
+      #
+      # Mount the checked-out repo as /workspace (the image WORKDIR).
+      # Mount the recipe cache directory so it survives across runs.
+      # The -u flag runs as the current UID to avoid permission issues on the
+      # mounted volume (the bin/ output must be readable by the runner).
+      # ────────────────────────────────────────────────────────────────────────
+      - name: Build debug APK inside container
+        run: |
+          docker run --rm \
+            -u "$(id -u):$(id -g)" \
+            -v "${{ github.workspace }}:/workspace" \
+            -w /workspace \
+            "$IMAGE" \
+            bash -c "buildozer -v android debug 2>&1 | tee buildozer_build.log"
+
+      # ── 7. Upload APK ────────────────────────────────────────────────────────
+      - name: Upload APK artifact
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: soccer-stars-analyzer-debug-apk
+          path: ./bin/*.apk
+          retention-days: 30
+          if-no-files-found: error
+
+      # ── 8. Upload build log on failure ───────────────────────────────────────
+      - name: Upload build log on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: buildozer-failure-log
+          path: ./buildozer_build.log
+          retention-days: 7
+          if-no-files-found: ignore
